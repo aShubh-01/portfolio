@@ -52,21 +52,26 @@ const NetworkNode = ({ i }) => (
 const TabButton = ({ active, onClick, children }) => (
   <button
     onClick={onClick}
-    className={`px-6 py-3 rounded-full font-medium transition-all ${
-      active ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'
+    className={`px-8 py-3 rounded-full font-medium transition-all duration-300 ease-out relative overflow-hidden ${
+      active 
+        ? 'bg-purple-600 text-white shadow-lg' 
+        : 'text-gray-400 hover:text-white hover:bg-purple-600/20'
     }`}
   >
-    {children}
+    {active && (
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-purple-600/30 animate-pulse" />
+    )}
+    <span className="relative z-10">{children}</span>
   </button>
 )
 
 const TimelineItem = ({ item, index, activeTab, isVisible }) => (
   <div
     data-index={index}
-    className={`experience-item relative transition-all duration-600 ${
-      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+    className={`experience-item relative transition-all duration-700 ease-out ${
+      isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
     }`}
-    style={{ transitionDelay: `${index * 200}ms` }}
+    style={{ transitionDelay: `${index * 150}ms` }}
   >
     <div className="flex items-start space-x-4">
       <div className="relative z-10 w-4 h-4 mt-1 flex-shrink-0">
@@ -117,27 +122,97 @@ const TimelineItem = ({ item, index, activeTab, isVisible }) => (
   </div>
 )
 
-export default function Experience() {
-  const [visibleCards, setVisibleCards] = useState([])
-  const [activeTab, setActiveTab] = useState('experience')
-  const sectionRef = useRef(null)
+const useIntersectionObserver = (threshold = 0.2) => {
+  const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const index = parseInt(entry.target.dataset.index)
-          setVisibleCards(prev => [...new Set([...prev, index])])
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setTimeout(() => setIsVisible(true), 200)
         }
-      }),
-      { threshold: 0.1 }
+      },
+      { 
+        threshold,
+        rootMargin: '-20px 0px -20px 0px'
+      }
     )
 
-    const cards = sectionRef.current?.querySelectorAll('.experience-item')
-    cards?.forEach(card => observer.observe(card))
+    const currentRef = ref.current
+    if (currentRef) observer.observe(currentRef)
 
-    return () => cards?.forEach(card => observer.unobserve(card))
-  }, [activeTab])
+    return () => currentRef && observer.unobserve(currentRef)
+  }, [threshold, isVisible])
+
+  return [ref, isVisible]
+}
+
+export default function Experience() {
+  const [visibleCards, setVisibleCards] = useState([])
+  const [activeTab, setActiveTab] = useState('experience')
+  const [titleVisible, setTitleVisible] = useState(false)
+  const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const [tabsVisible, setTabsVisible] = useState(false)
+  const [contentKey, setContentKey] = useState('experience-0') // Force re-render on tab change
+  const [bottomLineVisible, setBottomLineVisible] = useState(false)
+  const [timelineVisible, setTimelineVisible] = useState(false)
+  const [sectionRef, isVisible] = useIntersectionObserver()
+
+  // Staggered header animations
+  useEffect(() => {
+    if (isVisible) {
+      setTimeout(() => setTitleVisible(true), 200)
+      setTimeout(() => setSubtitleVisible(true), 500)
+      setTimeout(() => setTabsVisible(true), 800)
+      
+      // Bottom line appears after all animations complete
+      setTimeout(() => setBottomLineVisible(true), 2900)
+    }
+  }, [isVisible])
+
+  // Timeline animation trigger - when content appears
+  useEffect(() => {
+    if (visibleCards.length > 0) {
+      // Timeline starts animating once first content item appears
+      setTimeout(() => setTimelineVisible(true), 300)
+    }
+  }, [visibleCards.length])
+
+  // Simple, smooth tab switching
+  const handleTabSwitch = (newTab) => {
+    if (newTab === activeTab) return
+    
+    // Reset visibility for smooth entrance
+    setVisibleCards([])
+    setTimelineVisible(false) // Immediately hide timeline
+    setActiveTab(newTab)
+    setContentKey(`${newTab}-${Date.now()}`) // Force component re-render
+    
+    // Stagger the new content appearance
+    setTimeout(() => {
+      const newData = data[newTab]
+      newData.forEach((_, index) => {
+        setTimeout(() => {
+          setVisibleCards(prev => [...prev, index])
+        }, index * 120)
+      })
+    }, 100)
+  }
+
+  // Initial content animation
+  useEffect(() => {
+    if (tabsVisible && visibleCards.length === 0) {
+      setTimeout(() => {
+        const currentData = data[activeTab]
+        currentData.forEach((_, index) => {
+          setTimeout(() => {
+            setVisibleCards(prev => [...prev, index])
+          }, index * 150 + 300)
+        })
+      }, 200)
+    }
+  }, [tabsVisible, activeTab])
 
   const currentData = data[activeTab]
 
@@ -148,26 +223,64 @@ export default function Experience() {
       </div>
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <h2 className="text-4xl font-bold text-center mb-4 gradient-text">experience + education</h2>
-        <p className="text-center text-lg text-gray-400 italic mb-12">
+        {/* Clean header animations */}
+        <h2 
+          className={`text-4xl font-bold text-center mb-4 gradient-text transition-all duration-800 ease-out ${
+            titleVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-6'
+          }`}
+        >
+          experience + education
+        </h2>
+        
+        <p 
+          className={`text-center text-lg text-gray-400 italic mb-12 transition-all duration-800 ease-out ${
+            subtitleVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-4'
+          }`}
+        >
           Discovered a passion for coding during college, which sparked a commitment to cultivating technical skills and transforming organizational challenges into technology-driven solutions through leadership and zero-to-one innovations.
         </p>
 
-        <div className="flex justify-center mb-16">
+        {/* Simple, elegant tab switcher */}
+        <div 
+          className={`flex justify-center mb-16 transition-all duration-800 ease-out ${
+            tabsVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-4'
+          }`}
+        >
           <div className="bg-slate-900/50 rounded-full p-1 backdrop-blur-sm border border-purple-400/20">
-            <TabButton active={activeTab === 'experience'} onClick={() => setActiveTab('experience')}>
+            <TabButton 
+              active={activeTab === 'experience'} 
+              onClick={() => handleTabSwitch('experience')}
+            >
               Experience
             </TabButton>
-            <TabButton active={activeTab === 'education'} onClick={() => setActiveTab('education')}>
+            <TabButton 
+              active={activeTab === 'education'} 
+              onClick={() => handleTabSwitch('education')}
+            >
               Education
             </TabButton>
           </div>
         </div>
 
+        {/* Animated timeline */}
         <div className="relative">
-          <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-blue-400 to-purple-400 opacity-30" />
+          <div 
+            className={`absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-blue-400 to-purple-400 transition-all duration-1200 ease-out ${
+              timelineVisible ? 'opacity-30 scale-y-100' : 'opacity-0 scale-y-0'
+            }`}
+            style={{
+              transformOrigin: 'bottom' // Draw from bottom to top
+            }}
+            key={`timeline-${contentKey}`}
+          />
           
-          <div className="space-y-12">
+          <div className="space-y-12" key={contentKey}>
             {currentData.map((item, index) => (
               <TimelineItem 
                 key={`${activeTab}-${index}`}
@@ -179,6 +292,15 @@ export default function Experience() {
             ))}
           </div>
         </div>
+
+        {/* Animated bottom decoration */}
+        <div 
+          className={`mt-16 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
+            bottomLineVisible 
+              ? 'opacity-100 scale-x-100' 
+              : 'opacity-0 scale-x-0'
+          }`}
+        />
       </div>
     </section>
   )

@@ -85,7 +85,7 @@ export default function Hero() {
   const [isVisible, setIsVisible] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   
-  const typedText = useTypingAnimation("Backend Developer | Tech Generalist | AI-first Engineer", isTyping)
+  const typedText = useTypingAnimation("Backend Developer | Systems Architect | AI-first Engineer", isTyping)
   
   const codeBlocks = [
     'npm install magic', 'git push origin main', 'docker build -t awesome', 'kubectl apply -f deploy.yaml',

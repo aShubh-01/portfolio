@@ -26,8 +26,33 @@ const dummyProjects = [
   }
 ]
 
-export default function Projects() {
+const useIntersectionObserver = (threshold = 0.2) => {
   const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setTimeout(() => setIsVisible(true), 150)
+        }
+      },
+      { 
+        threshold,
+        rootMargin: '-50px 0px -50px 0px'
+      }
+    )
+
+    const currentRef = ref.current
+    if (currentRef) observer.observe(currentRef)
+
+    return () => currentRef && observer.unobserve(currentRef)
+  }, [threshold, isVisible])
+
+  return [ref, isVisible]
+}
+
+export default function Projects() {
   const [loading, setLoading] = useState(true)
   const [contributions, setContributions] = useState([])
   const [contributionStats, setContributionStats] = useState({
@@ -35,28 +60,37 @@ export default function Projects() {
     currentStreak: 0,
     longestStreak: 0
   })
-  const sectionRef = useRef(null)
+  const [titleVisible, setTitleVisible] = useState(false)
+  const [subtitleVisible, setSubtitleVisible] = useState(false)
+  const [projectsVisible, setProjectsVisible] = useState([])
+  const [githubTitleVisible, setGithubTitleVisible] = useState(false)
+  const [githubContentVisible, setGithubContentVisible] = useState(false)
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, data: null })
+  const [bottomLineVisible, setBottomLineVisible] = useState(false)
+  
+  const [sectionRef, isVisible] = useIntersectionObserver()
 
+  // Staggered header animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
+    if (isVisible) {
+      setTimeout(() => setTitleVisible(true), 200)
+      setTimeout(() => setSubtitleVisible(true), 600)
+      
+      // Stagger project cards
+      dummyProjects.forEach((_, index) => {
+        setTimeout(() => {
+          setProjectsVisible(prev => [...prev, index])
+        }, 1000 + index * 150)
+      })
+      
+      // GitHub section appears after projects
+      setTimeout(() => setGithubTitleVisible(true), 1000 + dummyProjects.length * 150 + 400)
+      setTimeout(() => setGithubContentVisible(true), 1000 + dummyProjects.length * 150 + 800)
+      
+      // Bottom line appears after all animations complete
+      setTimeout(() => setBottomLineVisible(true), 3200)
     }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
+  }, [isVisible])
 
   useEffect(() => {
     const loadGitHubData = async () => {
@@ -69,7 +103,7 @@ export default function Projects() {
           today.setHours(0, 0, 0, 0)
 
           const startDate = new Date(today)
-          startDate.setDate(today.getDate() - 365)
+          startDate.setDate(today.getDate() - 371) // Changed from 365 to 371
 
           const validContributions = contributionData.contributions.filter(c => {
             const date = new Date(c.date)
@@ -81,10 +115,10 @@ export default function Projects() {
             (a, b) => new Date(a.date) - new Date(b.date)
           )
 
-          const last365Contributions = sortedContributions.slice(-365)
+          const last371Contributions = sortedContributions.slice(-371) // Changed from -365 to -371
           const total = validContributions.reduce((sum, day) => sum + day.count, 0)
 
-          setContributions(last365Contributions)
+          setContributions(last371Contributions) // Changed from last365Contributions
 
           const currentStreak = calculateCurrentStreak(contributionData.contributions)
           const longestStreak = calculateLongestStreak(contributionData.contributions)
@@ -103,10 +137,10 @@ export default function Projects() {
       }
     }
 
-    if (isVisible) {
+    if (githubContentVisible) {
       loadGitHubData()
     }
-  }, [isVisible])
+  }, [githubContentVisible])
 
   const calculateCurrentStreak = (contributions) => {
     let streak = 0
@@ -165,13 +199,13 @@ export default function Projects() {
     }
 
     const weeks = []
-    const totalWeeks = 52
+    const totalWeeks = 53 // Changed from 52 to 53
     const calendarData = []
 
     const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 365)
+    startDate.setDate(startDate.getDate() - 371) // Changed from 365 to 371
 
-    for (let i = 0; i < 365; i++) {
+    for (let i = 0; i < 371; i++) { // Changed from 365 to 371
       const currentDate = new Date(startDate)
       currentDate.setDate(startDate.getDate() + i)
 
@@ -192,11 +226,31 @@ export default function Projects() {
 
         if (dataIndex < calendarData.length) {
           const dayData = calendarData[dataIndex]
+          const date = new Date(dayData.date)
+          const formattedDate = date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+          })
+          
           weekData.push(
             <div
               key={`${week}-${day}`}
-              className={`w-3 h-3 rounded-sm border ${getContributionColor(dayData.count)} hover:scale-110 transition-transform duration-200`}
-              title={`${dayData.count} contributions on ${dayData.date}`}
+              className={`w-3 h-3 rounded-sm border ${getContributionColor(dayData.count)} hover:scale-110 transition-all duration-200 cursor-pointer relative`}
+              onMouseEnter={(e) => {
+                const rect = e.target.getBoundingClientRect()
+                setTooltip({
+                  visible: true,
+                  x: rect.left + rect.width / 2,
+                  y: rect.top - 10,
+                  data: {
+                    count: dayData.count,
+                    date: formattedDate
+                  }
+                })
+              }}
+              onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, data: null })}
             />
           )
         } else {
@@ -217,7 +271,7 @@ export default function Projects() {
     }
 
     return (
-      <div className="flex gap-1.5 overflow-x-auto">
+      <div className="flex gap-1.5 overflow-visible relative"> {/* Changed overflow-hidden to overflow-visible and added relative */}
         {weeks}
       </div>
     )
@@ -226,12 +280,12 @@ export default function Projects() {
   const generateMonthLabels = () => {
     const today = new Date()
     const startDate = new Date(today)
-    startDate.setDate(startDate.getDate() - 365)
+    startDate.setDate(startDate.getDate() - 371) // Changed from 365 to 371
 
     const monthPositions = []
     let currentMonth = -1
 
-    for (let i = 0; i < 365; i++) {
+    for (let i = 0; i < 371; i++) { // Changed from 365 to 371
       const currentDate = new Date(startDate)
       currentDate.setDate(startDate.getDate() + i)
 
@@ -239,7 +293,7 @@ export default function Projects() {
         currentMonth = currentDate.getMonth()
         const weekIndex = Math.floor(i / 7)
 
-        if (weekIndex < 52) {
+        if (weekIndex < 53) { // Changed from 52 to 53
           monthPositions.push({
             month: currentDate.toLocaleDateString('en-US', { month: 'short' }),
             position: weekIndex
@@ -256,19 +310,40 @@ export default function Projects() {
             className="absolute text-sm text-gray-400 font-medium"
             style={{
               left: `${(index / (monthPositions.length + 1)) * 100}%`,
-              transform: 'none' // centers each label
+              transform: 'none'
             }}
           >
             {month.month}
           </div>
         ))}
       </div>
-
     )
   }
 
   return (
     <section id="projects" className="py-20 px-6 relative overflow-hidden" ref={sectionRef}>
+      {/* Global Tooltip */}
+      {tooltip.visible && tooltip.data && (
+        <div
+          className="fixed bg-gray-900 text-white text-xs rounded-md px-3 py-2 border border-gray-600 shadow-2xl pointer-events-none whitespace-nowrap"
+          style={{
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: 'translate(-50%, -100%)',
+            zIndex: 99999
+          }}
+        >
+          <div className="font-medium">
+            {tooltip.data.count} contribution{tooltip.data.count !== 1 ? 's' : ''}
+          </div>
+          <div className="text-gray-300 text-xs">
+            {tooltip.data.date}
+          </div>
+          {/* Tooltip Arrow */}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+
       {/* Project Grid Background */}
       <div className="absolute inset-0 overflow-hidden opacity-5 pointer-events-none">
         {/* Vertical Grid Lines */}
@@ -313,23 +388,37 @@ export default function Projects() {
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <h2 className="text-4xl font-bold text-center mb-4 gradient-text">
+        {/* Animated headers */}
+        <h2 
+          className={`text-4xl font-bold text-center mb-4 gradient-text transition-all duration-1000 ease-out ${
+            titleVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-8'
+          }`}
+        >
           .projects
         </h2>
-        <p className="text-center text-lg text-gray-400 italic mb-16">
+        
+        <p 
+          className={`text-center text-lg text-gray-400 italic mb-16 transition-all duration-1000 ease-out ${
+            subtitleVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-6'
+          }`}
+        >
           Crafting robust, performance-driven applications that demonstrate technical depth and innovative problem-solving
         </p>
 
-        {/* Projects Grid */}
+        {/* Projects Grid with staggered animations */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {dummyProjects.map((project, index) => (
             <div
               key={index}
-              className={`project-card p-6 rounded-lg hover-lift transition-all duration-600 ${isVisible
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-12'
-                }`}
-              style={{ transitionDelay: `${index * 200}ms` }}
+              className={`project-card p-6 rounded-lg hover-lift transition-all duration-800 ease-out ${
+                projectsVisible.includes(index)
+                  ? 'opacity-100 translate-y-0 scale-100'
+                  : 'opacity-0 translate-y-12 scale-95'
+              }`}
             >
               <h3 className="text-xl font-semibold mb-3 text-purple-400">
                 {project.title}
@@ -341,7 +430,7 @@ export default function Projects() {
                 {project.tags.map((tag, tagIndex) => (
                   <span
                     key={tagIndex}
-                    className="text-xs px-2 py-1 bg-purple-600/20 rounded"
+                    className="text-xs px-2 py-1 bg-purple-600/20 rounded transition-all duration-300 hover:bg-purple-600/30"
                   >
                     {tag}
                   </span>
@@ -379,76 +468,99 @@ export default function Projects() {
           ))}
         </div>
 
-        {/* GitHub Contributions */}
-        <div className={`transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-          }`}>
-          <h3 className="text-4xl font-bold text-center mb-4 gradient-text">
-            	git fetch contributions
+        {/* GitHub Contributions Section */}
+        <div>
+          <h3 
+            className={`text-4xl font-bold text-center mb-4 gradient-text transition-all duration-1000 ease-out ${
+              githubTitleVisible 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-8'
+            }`}
+          >
+            git fetch contributions
           </h3>
-          <br />
-          {loading ? (
-            <div className="text-center text-gray-400 py-12 text-lg">
-              Loading GitHub contributions...
-            </div>
-          ) : (
-            <div className="max-w-6xl mx-auto">
-              {/* Month Labels */}
-              <div className="ml-[110px] mb-4">
-                {generateMonthLabels()}
+          
+          <div 
+            className={`transition-all duration-1200 ease-out ${
+              githubContentVisible 
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-12'
+            }`}
+          >
+            <br />
+            {loading ? (
+              <div className="text-center text-gray-400 py-12 text-lg">
+                Loading GitHub contributions...
               </div>
+            ) : (
+              <div className="max-w-6xl mx-auto">
+                {/* Month Labels */}
+                <div className="ml-[110px] mb-4">
+                  {generateMonthLabels()}
+                </div>
 
-              {/* Contribution Calendar */}
-              <div className="mb-8 flex justify-center">
-                <div className="inline-block p-6 bg-gray-900/30 rounded-lg border border-gray-700/30">
-                  {generateContributionCalendar()}
+                {/* Contribution Calendar */}
+                <div className="mb-8 flex justify-center">
+                  <div className="inline-block p-6 bg-gray-900/30 rounded-lg border border-gray-700/30 relative overflow-visible">
+                    {generateContributionCalendar()}
+                  </div>
+                </div>
+
+                {/* Color Legend */}
+                <div className="flex items-center justify-center gap-6 text-sm text-gray-400 mb-12">
+                  <span>Less</span>
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-sm bg-gray-800/40 border border-gray-600/40"></div>
+                    <div className="w-3 h-3 rounded-sm bg-purple-600/30 border border-purple-500/40"></div>
+                    <div className="w-3 h-3 rounded-sm bg-purple-500/50 border border-purple-400/60"></div>
+                    <div className="w-3 h-3 rounded-sm bg-purple-400/70 border border-purple-300/70"></div>
+                    <div className="w-3 h-3 rounded-sm bg-purple-300/90 border border-purple-200/80"></div>
+                  </div>
+                  <span>More</span>
+                </div>
+
+                {/* Statistics */}
+                <div className="grid md:grid-cols-3 gap-12 text-center">
+                  <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
+                    <div className="text-4xl font-bold text-purple-400 mb-3">
+                      {contributionStats.total} <span className="text-xl text-gray-400">total</span>
+                    </div>
+                    <div className="text-gray-300">
+                      Contributions in the last 365 Days
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
+                    <div className="text-4xl font-bold text-purple-400 mb-3">
+                      {contributionStats.longestStreak} <span className="text-xl text-gray-400">days</span>
+                    </div>
+                    <div className="text-gray-300">
+                      Longest streak
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
+                    <div className="text-4xl font-bold text-purple-400 mb-3">
+                      {contributionStats.currentStreak} <span className="text-xl text-gray-400">days</span>
+                    </div>
+                    <div className="text-gray-300">
+                      Current streak
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Color Legend */}
-              <div className="flex items-center justify-center gap-6 text-sm text-gray-400 mb-12">
-                <span>Less</span>
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-sm bg-gray-800/40 border border-gray-600/40"></div>
-                  <div className="w-3 h-3 rounded-sm bg-purple-600/30 border border-purple-500/40"></div>
-                  <div className="w-3 h-3 rounded-sm bg-purple-500/50 border border-purple-400/60"></div>
-                  <div className="w-3 h-3 rounded-sm bg-purple-400/70 border border-purple-300/70"></div>
-                  <div className="w-3 h-3 rounded-sm bg-purple-300/90 border border-purple-200/80"></div>
-                </div>
-                <span>More</span>
-              </div>
-
-              {/* Statistics */}
-              <div className="grid md:grid-cols-3 gap-12 text-center">
-                <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
-                  <div className="text-4xl font-bold text-purple-400 mb-3">
-                    {contributionStats.total} <span className="text-xl text-gray-400">total</span>
-                  </div>
-                  <div className="text-gray-300">
-                    Contributions in the last 365 Days
-                  </div>
-                </div>
-
-                <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
-                  <div className="text-4xl font-bold text-purple-400 mb-3">
-                    {contributionStats.longestStreak} <span className="text-xl text-gray-400">days</span>
-                  </div>
-                  <div className="text-gray-300">
-                    Longest streak
-                  </div>
-                </div>
-
-                <div className="p-6 bg-gray-900/20 rounded-lg border border-gray-700/30 hover:border-purple-500/30 transition-all duration-300">
-                  <div className="text-4xl font-bold text-purple-400 mb-3">
-                    {contributionStats.currentStreak} <span className="text-xl text-gray-400">days</span>
-                  </div>
-                  <div className="text-gray-300">
-                    Current streak
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Animated bottom decoration */}
+        <div 
+          className={`mt-16 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
+            bottomLineVisible 
+              ? 'opacity-100 scale-x-100' 
+              : 'opacity-0 scale-x-0'
+          }`}
+        />
       </div>
     </section>
   )
