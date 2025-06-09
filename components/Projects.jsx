@@ -13,14 +13,14 @@ const dummyProjects = [
   {
     title: 'Slate',
     description: 'A full-stack blog application featuring essential CRUD and bookmarking capabilities. It offers a clean, user-friendly interface for creating, editing, and saving posts seamlessly.',
-    tags: ['React', 'Express', 'Socket.io'],
+    tags: ['React', 'Hono', 'PostgreSQL'],
     githubUrl: 'https://github.com/aShubh-01/Slate-Blog-App',
     liveUrl: 'https://blog-app-five-ecru.vercel.app/'
   },
   {
     title: 'DockStore',
     description: 'A personal object storage solution designed for fast and efficient storage of documents and files. Built for project needs, it ensures quick read and write speeds with reliable data management.',
-    tags: ['TypeScript', 'PostgreSQL', 'Chart.js'],
+    tags: ['Next.js', 'MongoDB', 'Docker'],
     githubUrl: 'https://github.com/aShubh-01/DockStore',
     liveUrl: ''
   }
