@@ -71,10 +71,14 @@ const TechIcon = ({ tech, index, isVisible }) => (
         priority={index < 6}
         onError={(e) => e.target.style.display = 'none'}
       />
+      
+      {/* Tooltip positioned relative to the image */}
+      <div className="absolute top-[-2.5rem] left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none z-[100] shadow-xl border border-gray-700">
+        {tech.name}
+        {/* Tooltip arrow */}
+        <div className="absolute bottom-[-4px] left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 border-r border-b border-gray-700 rotate-45"></div>
+      </div>
     </div>
-    <span className="z-50 absolute bottom-[-3rem] bg-gray-800 text-white text-sm rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap transform translate-y-2 group-hover:translate-y-0 shadow-lg">
-      {tech.name}
-    </span>
   </div>
 )
 
@@ -116,8 +120,8 @@ export default function TechStack() {
           Mastering diverse technologies to architect scalable solutions that solve real-world problems at scale
         </p>
 
-        {/* Tech icons grid with wave animation */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-10 justify-items-center items-center">
+        {/* Tech icons grid with wave animation - added overflow visible */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-10 justify-items-center items-center py-8 overflow-visible">
           {techStack.map((tech, index) => (
             <TechIcon 
               key={tech.name} 
@@ -130,7 +134,7 @@ export default function TechStack() {
 
         {/* Animated bottom decoration */}
         <div 
-          className={`mt-16 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
+          className={`mt-8 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
             isVisible 
               ? 'opacity-100 scale-x-100' 
               : 'opacity-0 scale-x-0'
