@@ -90,7 +90,7 @@ export default function About() {
               : 'opacity-0 translate-y-6'
           }`}
         >
-          Bridging the gap between complex system architecture and elegant user experiences through rigorous engineering practices
+          bridging the gap between complex system architecture and elegant user experiences through rigorous engineering practices
         </p>
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -105,9 +105,26 @@ export default function About() {
               transitionDelay: isVisible ? '800ms' : '0ms' 
             }}
           >
-            <div className="relative w-64 h-64 mx-auto">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-600 to-blue-600 neon-glow flex items-center justify-center text-6xl font-bold">
-                SD
+            <div className="relative w-80 h-80 mx-auto">
+              {/* Supporting elements around the circle */}
+              <div className="absolute -top-4 -left-4 w-8 h-8 border-2 border-blue-400/40 rounded-full animate-pulse"></div>
+              <div className="absolute -top-2 right-8 w-3 h-3 bg-purple-400/60 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute bottom-4 -left-6 w-4 h-4 border border-cyan-400/50 rotate-45 animate-pulse" style={{ animationDelay: '2s' }}></div>
+              <div className="absolute -bottom-3 right-2 w-6 h-6 border-2 border-indigo-400/40 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute top-16 -right-8 w-5 h-5 bg-blue-300/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+              
+              {/* Subtle orbital rings */}
+              <div className="absolute inset-0 rounded-full border border-blue-300/20 animate-spin" style={{ animation: 'spin 20s linear infinite' }}></div>
+              <div className="absolute inset-2 rounded-full border border-purple-300/15 animate-spin" style={{ animation: 'spin 15s linear infinite reverse' }}></div>
+              
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-blue-800 neon-glow p-3" style={{
+                animation: 'float 4s ease-in-out infinite'
+              }}>
+                <img 
+                  src="/shubhampic.png" 
+                  alt="Shubham Deore" 
+                  className="w-full h-full rounded-full object-cover border-4 border-white/20 shadow-2xl"
+                />
               </div>
             </div>
           </div>
@@ -125,8 +142,10 @@ export default function About() {
               }}
             >
               A passionate backend developer who loves crafting robust, scalable solutions.
-              With a keen eye for clean code and system architecture, I thrive on solving complex problems
-              and building tech that makes a difference.
+              With a keen eye for clean code and system architecture, I thrive on solving 
+              complex problems and building tech that makes a difference. I actively collaborate 
+              with AI as a thought partner to design better systems, solve intricate challenges, 
+              and sharpen my intellect and rigor.
             </p>
             
             <p 
@@ -139,7 +158,7 @@ export default function About() {
                 transitionDelay: isVisible ? '1300ms' : '0ms' 
               }}
             >
-              When I'm not coding, you'll find me retrospective on my work, exploring new technologies,
+              When I'm not working, you'll find me reading tech/business books, retrospecting on my work, exploring new technologies,
               or sharing knowledge with others!
             </p>
           </div>

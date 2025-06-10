@@ -117,7 +117,7 @@ export default function TechStack() {
               : 'opacity-0 translate-y-4'
           }`}
         >
-          Mastering diverse technologies to architect scalable solutions that solve real-world problems at scale
+          learning & using diverse technologies to architect scalable solutions that solves organizational problems.
         </p>
 
         {/* Tech icons grid with wave animation - added overflow visible */}

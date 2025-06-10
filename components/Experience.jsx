@@ -6,12 +6,13 @@ const data = {
   experience: [{
     duration: '2025, March - Present',
     title: 'Software Developer Intern',
-    company: "DeepThought CultureTech Ventures Pvt Ltd , India",
+    company: "DeepThought CultureTech Ventures Pvt Ltd , Hyderabad, India",
     isCurrent: true,
     responsibilities: [
-      'Developed and maintained full-stack web applications using Node.js, MongoDB, and Next.js',
-      'Built internal tools and automations to optimize team workflows and reduce manual effort',
-      "Building an AI-powered SaaS model that will take candidates through an simulation of the company & streamline the company's recruitment process",
+      'Developed and maintained full-stack web applications using Node.js, MongoDB, and Next.js.',
+      'Engineered AI Workflows that led teams to go from operational to systems thinking, increasing efficiency.',
+      'Built internal tools and automations to optimize team workflows and reduce manual effort.',
+      "Building an AI-powered SaaS that will streamline our recruitment & onboarding process.",
       'Assisted new recruits by mentoring, resolving technical issues, and improving onboarding efficiency.'
     ]
   }],
@@ -156,6 +157,7 @@ export default function Experience() {
   const [tabsVisible, setTabsVisible] = useState(false)
   const [contentKey, setContentKey] = useState('experience-0') // Force re-render on tab change
   const [bottomLineVisible, setBottomLineVisible] = useState(false)
+  const [cvButtonVisible, setCvButtonVisible] = useState(false)
   const [timelineVisible, setTimelineVisible] = useState(false)
   const [sectionRef, isVisible] = useIntersectionObserver()
 
@@ -166,6 +168,8 @@ export default function Experience() {
       setTimeout(() => setSubtitleVisible(true), 500)
       setTimeout(() => setTabsVisible(true), 800)
       
+      // CV button appears before bottom line
+      setTimeout(() => setCvButtonVisible(true), 2500)
       // Bottom line appears after all animations complete
       setTimeout(() => setBottomLineVisible(true), 2900)
     }
@@ -241,7 +245,7 @@ export default function Experience() {
               : 'opacity-0 translate-y-4'
           }`}
         >
-          Discovered a passion for coding during college, which sparked a commitment to cultivating technical skills and transforming organizational challenges into technology-driven solutions through leadership and zero-to-one innovations.
+          discovered a zeal for coding during college, which sparked a commitment to cultivating technical skills and transforming organizational challenges into technology-driven systems through leadership and zero-to-one innovations.
         </p>
 
         {/* Simple, elegant tab switcher */}
@@ -293,15 +297,55 @@ export default function Experience() {
           </div>
         </div>
 
+        {/* CV Download Button */}
+        <div 
+          className={`mt-16 flex justify-center transition-all duration-1000 ease-out ${
+            cvButtonVisible 
+              ? 'opacity-100 translate-y-0 scale-100' 
+              : 'opacity-0 translate-y-8 scale-95'
+          }`}
+        >
+          <a
+            href="/cv/Shubham_Dhokare_CV.pdf" // Adjust path based on your repo structure
+            download="Shubham_Dhokare_CV.pdf"
+            className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+          >
+            <svg 
+              className="w-5 h-5 group-hover:scale-110 transition-transform" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+              />
+            </svg>
+            Download my CV
+          </a>
+        </div>
+
         {/* Animated bottom decoration */}
         <div 
-          className={`mt-16 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
+          className={`mt-8 w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full transition-all duration-1200 ease-out ${
             bottomLineVisible 
               ? 'opacity-100 scale-x-100' 
               : 'opacity-0 scale-x-0'
           }`}
         />
       </div>
+
+      {/* Styles */}
+      <style jsx>{`
+        .gradient-text {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      `}</style>
     </section>
   )
 }

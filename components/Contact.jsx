@@ -145,8 +145,8 @@ export default function Contact() {
               Let's Build Something Awesome Together
             </h3>
             <p className="text-lg text-gray-300 mb-6">
-              Have a project in mind or just want to chat about tech? I'm always excited to connect
-              with fellow developers and explore new opportunities.
+              Have a project in mind or just want to chat about something interesting? I'm always excited to connect
+              with folks  and explore new opportunities.
             </p>
             
             {/* Contact info with staggered animation */}
